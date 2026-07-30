@@ -2,7 +2,7 @@ import requests
 import random
 import string
 import base64
-from config import SHORT_URL, SHORT_API, MESSAGES
+from config import SHORT_URL, SHORT_API, MESSAGES, OWNER_ID
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram.errors.pyromod import ListenerTimeout
@@ -61,6 +61,8 @@ def get_short(url, client):
 
 @Client.on_message(filters.command('shortner') & filters.private)
 async def shortner_command(client: Client, message: Message):
+    if message.from_user.id != OWNER_ID:
+        return
     await shortner_panel(client, message)
 
 #===============================================================#
@@ -117,8 +119,8 @@ async def shortner_panel(client, query_or_message):
 
 @Client.on_callback_query(filters.regex("^shortner$"))
 async def shortner_callback(client, query):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     await query.answer()
     await shortner_panel(client, query)
 
@@ -126,8 +128,8 @@ async def shortner_callback(client, query):
 
 @Client.on_callback_query(filters.regex("^toggle_shortner$"))
 async def toggle_shortner(client: Client, query: CallbackQuery):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     # Toggle the shortner status
     current_status = getattr(client, 'shortner_enabled', True)
     new_status = not current_status
@@ -146,8 +148,8 @@ async def toggle_shortner(client: Client, query: CallbackQuery):
 
 @Client.on_callback_query(filters.regex("^add_shortner$"))
 async def add_shortner(client: Client, query: CallbackQuery):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     
     await query.answer()
         
@@ -200,8 +202,8 @@ __<blockquote>**≡ ꜱᴇɴᴅ ɴᴇᴡ ꜱʜᴏʀᴛɴᴇʀ ᴜʀʟ ᴀɴᴅ �
 
 @Client.on_callback_query(filters.regex("^set_tutorial_link$"))
 async def set_tutorial_link(client: Client, query: CallbackQuery):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     
     await query.answer()
         
@@ -234,8 +236,8 @@ __ꜱᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴛᴜᴛᴏʀɪᴀʟ ʟɪɴᴋ ɪɴ ᴛʜᴇ ɴ
 
 @Client.on_callback_query(filters.regex("^test_shortner$"))
 async def test_shortner(client: Client, query: CallbackQuery):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     
     await query.answer()
         
