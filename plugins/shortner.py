@@ -1,14 +1,17 @@
 import requests
 import random
 import string
-from config import SHORT_URL, SHORT_API, MESSAGES
+import base64
+import time
+from config import SHORT_URL, SHORT_API, MESSAGES, OWNER_ID
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram.errors.pyromod import ListenerTimeout
 from helper.helper_func import force_sub
 
-# ✅ In-memory cache
+# ✅ In-memory cache with TTL (24 hours)
 shortened_urls_cache = {}
+CACHE_TTL = 86400  # 24 hours in seconds
 
 def generate_random_alphanumeric():
     characters = string.ascii_letters + string.digits
@@ -21,24 +24,38 @@ def get_short(url, client):
     if not shortner_enabled:
         return url  # Return original URL if shortner is disabled
 
-    # Step 2: Check cache
+    # Step 2: Check cache with TTL
+    current_time = time.time()
     if url in shortened_urls_cache:
-        return shortened_urls_cache[url]
+        cached_link, cached_time = shortened_urls_cache[url]
+        if current_time - cached_time < CACHE_TTL:
+            return cached_link
 
     try:
-        alias = generate_random_alphanumeric()
         # Use dynamic shortner settings from client if available
         short_url = getattr(client, 'short_url', SHORT_URL)
         short_api = getattr(client, 'short_api', SHORT_API)
         
-        api_url = f"https://{short_url}/api?api={short_api}&url={url}&alias={alias}"
-        response = requests.get(api_url)
+        api_url = f"https://{short_url}/api?api={short_api}&url={url}"
+        response = requests.get(api_url, timeout=10)
         rjson = response.json()
 
         if rjson.get("status") == "success" and response.status_code == 200:
-            short_url = rjson.get("shortenedUrl", url)
-            shortened_urls_cache[url] = short_url
-            return short_url
+            # Get the original shortener link (lksfy.com)
+            original_short_link = rjson.get("shortenedUrl", url)
+            
+            # --- CUSTOM DOMAIN REDIRECT LOGIC ---
+            # 1. Encode the lksfy link to Base64
+            encoded_link = base64.b64encode(original_short_link.encode("utf-8")).decode("utf-8")
+            
+            # 2. Build the new sukuna.site link
+            secure_domain_link = f"https://sukuna.site/?to={encoded_link}"
+            
+            # 3. Save to cache with timestamp and return the new custom domain link
+            shortened_urls_cache[url] = (secure_domain_link, current_time)
+            return secure_domain_link
+            # ------------------------------------
+            
     except Exception as e:
         print(f"[Shortener Error] {e}")
 
@@ -48,6 +65,8 @@ def get_short(url, client):
 
 @Client.on_message(filters.command('shortner') & filters.private)
 async def shortner_command(client: Client, message: Message):
+    if message.from_user.id != OWNER_ID:
+        return
     await shortner_panel(client, message)
 
 #===============================================================#
@@ -62,7 +81,7 @@ async def shortner_panel(client, query_or_message):
     # Check if shortner is working (only if enabled)
     if shortner_enabled:
         try:
-            test_response = requests.get(f"https://{short_url}/api?api={short_api}&url=https://google.com&alias=test", timeout=5)
+            test_response = requests.get(f"https://{short_url}/api?api={short_api}&url=https://google.com", timeout=5)
             status = "✓ ᴡᴏʀᴋɪɴɢ" if test_response.status_code == 200 else "✗ ɴᴏᴛ ᴡᴏʀᴋɪɴɢ"
         except:
             status = "✗ ɴᴏᴛ ᴡᴏʀᴋɪɴɢ"
@@ -104,8 +123,8 @@ async def shortner_panel(client, query_or_message):
 
 @Client.on_callback_query(filters.regex("^shortner$"))
 async def shortner_callback(client, query):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     await query.answer()
     await shortner_panel(client, query)
 
@@ -113,8 +132,8 @@ async def shortner_callback(client, query):
 
 @Client.on_callback_query(filters.regex("^toggle_shortner$"))
 async def toggle_shortner(client: Client, query: CallbackQuery):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     # Toggle the shortner status
     current_status = getattr(client, 'shortner_enabled', True)
     new_status = not current_status
@@ -133,8 +152,8 @@ async def toggle_shortner(client: Client, query: CallbackQuery):
 
 @Client.on_callback_query(filters.regex("^add_shortner$"))
 async def add_shortner(client: Client, query: CallbackQuery):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     
     await query.answer()
         
@@ -187,8 +206,8 @@ __<blockquote>**≡ ꜱᴇɴᴅ ɴᴇᴡ ꜱʜᴏʀᴛɴᴇʀ ᴜʀʟ ᴀɴᴅ �
 
 @Client.on_callback_query(filters.regex("^set_tutorial_link$"))
 async def set_tutorial_link(client: Client, query: CallbackQuery):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     
     await query.answer()
         
@@ -221,8 +240,8 @@ __ꜱᴇɴᴅ ᴛʜᴇ ɴᴇᴡ ᴛᴜᴛᴏʀɪᴀʟ ʟɪɴᴋ ɪɴ ᴛʜᴇ ɴ
 
 @Client.on_callback_query(filters.regex("^test_shortner$"))
 async def test_shortner(client: Client, query: CallbackQuery):
-    if not query.from_user.id in client.admins:
-        return await query.answer('❌ ᴏɴʟʏ ᴀᴅᴍɪɴꜱ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
+    if query.from_user.id != OWNER_ID:
+        return await query.answer('❌ ᴏɴʟʏ ᴏᴡɴᴇʀ ᴄᴀɴ ᴜꜱᴇ ᴛʜɪꜱ!', show_alert=True)
     
     await query.answer()
         
@@ -233,8 +252,7 @@ async def test_shortner(client: Client, query: CallbackQuery):
     
     try:
         test_url = "https://google.com"
-        alias = generate_random_alphanumeric()
-        api_url = f"https://{short_url}/api?api={short_api}&url={test_url}&alias={alias}"
+        api_url = f"https://{short_url}/api?api={short_api}&url={test_url}"
         
         response = requests.get(api_url, timeout=10)
         rjson = response.json()

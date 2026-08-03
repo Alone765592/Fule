@@ -480,7 +480,7 @@ async def batch_auto_del_notification(bot_username, messages, delay_time, transf
     
     # Update notification with get files button
     try:
-        if transfer_link:
+        if transfer_link and getattr(client, 'get_files_btn', True):
             try:
                 name = "• ɢᴇᴛ ғɪʟᴇs •"
                 link = f"https://t.me/{bot_username}?start={transfer_link}"

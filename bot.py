@@ -139,6 +139,13 @@ class Bot(Client):
             self.tutorial_link = SHORT_TUT
             self.shortner_enabled = True
         
+        # Load bot settings
+        try:
+            self.auto_watermark = await self.mongodb.get_bot_setting('auto_watermark', True)
+        except Exception as e:
+            self.LOGGER(__name__, self.name).warning(f"Error loading bot settings: {e}")
+            self.auto_watermark = True
+        
         try:
             db_channel = await self.get_chat(self.db)
             self.db_channel = db_channel
