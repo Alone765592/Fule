@@ -2,14 +2,16 @@ import requests
 import random
 import string
 import base64
+import time
 from config import SHORT_URL, SHORT_API, MESSAGES, OWNER_ID
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, InputMediaPhoto
 from pyrogram.errors.pyromod import ListenerTimeout
 from helper.helper_func import force_sub
 
-# ✅ In-memory cache
+# ✅ In-memory cache with TTL (24 hours)
 shortened_urls_cache = {}
+CACHE_TTL = 86400  # 24 hours in seconds
 
 def generate_random_alphanumeric():
     characters = string.ascii_letters + string.digits
@@ -22,18 +24,20 @@ def get_short(url, client):
     if not shortner_enabled:
         return url  # Return original URL if shortner is disabled
 
-    # Step 2: Check cache
+    # Step 2: Check cache with TTL
+    current_time = time.time()
     if url in shortened_urls_cache:
-        return shortened_urls_cache[url]
+        cached_link, cached_time = shortened_urls_cache[url]
+        if current_time - cached_time < CACHE_TTL:
+            return cached_link
 
     try:
-        alias = generate_random_alphanumeric()
         # Use dynamic shortner settings from client if available
         short_url = getattr(client, 'short_url', SHORT_URL)
         short_api = getattr(client, 'short_api', SHORT_API)
         
-        api_url = f"https://{short_url}/api?api={short_api}&url={url}&alias={alias}"
-        response = requests.get(api_url)
+        api_url = f"https://{short_url}/api?api={short_api}&url={url}"
+        response = requests.get(api_url, timeout=10)
         rjson = response.json()
 
         if rjson.get("status") == "success" and response.status_code == 200:
@@ -47,8 +51,8 @@ def get_short(url, client):
             # 2. Build the new sukuna.site link
             secure_domain_link = f"https://sukuna.site/?to={encoded_link}"
             
-            # 3. Save to cache and return the new custom domain link
-            shortened_urls_cache[url] = secure_domain_link
+            # 3. Save to cache with timestamp and return the new custom domain link
+            shortened_urls_cache[url] = (secure_domain_link, current_time)
             return secure_domain_link
             # ------------------------------------
             
@@ -77,7 +81,7 @@ async def shortner_panel(client, query_or_message):
     # Check if shortner is working (only if enabled)
     if shortner_enabled:
         try:
-            test_response = requests.get(f"https://{short_url}/api?api={short_api}&url=https://google.com&alias=test", timeout=5)
+            test_response = requests.get(f"https://{short_url}/api?api={short_api}&url=https://google.com", timeout=5)
             status = "✓ ᴡᴏʀᴋɪɴɢ" if test_response.status_code == 200 else "✗ ɴᴏᴛ ᴡᴏʀᴋɪɴɢ"
         except:
             status = "✗ ɴᴏᴛ ᴡᴏʀᴋɪɴɢ"
@@ -248,8 +252,7 @@ async def test_shortner(client: Client, query: CallbackQuery):
     
     try:
         test_url = "https://google.com"
-        alias = generate_random_alphanumeric()
-        api_url = f"https://{short_url}/api?api={short_api}&url={test_url}&alias={alias}"
+        api_url = f"https://{short_url}/api?api={short_api}&url={test_url}"
         
         response = requests.get(api_url, timeout=10)
         rjson = response.json()
