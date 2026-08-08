@@ -18,7 +18,7 @@ from logging.handlers import RotatingFileHandler
 #rohit_1888 on Tg
 #--------------------------------------------
 #Bot token @Botfather
-TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "7750523801:AAHQkdwpPfCZMtki7nu0l3Z6m7pPcuBQlgU")
 APP_ID = int(os.environ.get("APP_ID", "20901045")) #Your API ID from my.telegram.org
 API_HASH = os.environ.get("API_HASH", "dec03cafafbd892b285499762a896082") #Your API Hash from my.telegram.org
 #--------------------------------------------
@@ -29,7 +29,7 @@ OWNER_ID = int(os.environ.get("OWNER_ID", "6324457826")) # Owner id
 #--------------------------------------------
 PORT = os.environ.get("PORT", "8001")
 #--------------------------------------------
-DB_URI = os.environ.get("DATABASE_URL", "m")
+DB_URI = os.environ.get("DATABASE_URL", "mongodb+srv://Bad:Badgirl@cluster0.ss99jqk.mongodb.net/?appName=Cluster0")
 DB_NAME = os.environ.get("DATABASE_NAME", "Cluooo")
 #--------------------------------------------
 FSUB_LINK_EXPIRY = int(os.getenv("FSUB_LINK_EXPIRY", "10"))  # 0 means no expiry
