@@ -18,18 +18,18 @@ from logging.handlers import RotatingFileHandler
 #rohit_1888 on Tg
 #--------------------------------------------
 #Bot token @Botfather
-TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "8812754282:AAEvkKz0K19wDyBtCGg-BVhj3p-7EmX7U6M")
-APP_ID = int(os.environ.get("APP_ID", "20901045")) #Your API ID from my.telegram.org
-API_HASH = os.environ.get("API_HASH", "dec03cafafbd892b285499762a896082") #Your API Hash from my.telegram.org
+TG_BOT_TOKEN = os.environ.get("TG_BOT_TOKEN", "")
+APP_ID = int(os.environ.get("APP_ID", "")) #Your API ID from my.telegram.org
+API_HASH = os.environ.get("API_HASH", "d") #Your API Hash from my.telegram.org
 #--------------------------------------------
 
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-1002328135808")) #Your db channel Id
+CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "-10008")) #Your db channel Id
 OWNER = os.environ.get("OWNER", "Mrkillersss") # Owner username without @
 OWNER_ID = int(os.environ.get("OWNER_ID", "6324457826")) # Owner id
 #--------------------------------------------
 PORT = os.environ.get("PORT", "8001")
 #--------------------------------------------
-DB_URI = os.environ.get("DATABASE_URL", "mongodb+srv://Bad:Badgirl@cluster0.ss99jqk.mongodb.net/?appName=Cluster0")
+DB_URI = os.environ.get("DATABASE_URL", "m")
 DB_NAME = os.environ.get("DATABASE_NAME", "Cluooo")
 #--------------------------------------------
 FSUB_LINK_EXPIRY = int(os.getenv("FSUB_LINK_EXPIRY", "10"))  # 0 means no expiry
@@ -41,7 +41,7 @@ FORCE_PIC = os.environ.get("FORCE_PIC", "https://telegra.ph/file/e292b12890b8b4b
 
 #--------------------------------------------
 SHORTLINK_URL = os.environ.get("SHORTLINK_URL", "shortxlinks.com")
-SHORTLINK_API = os.environ.get("SHORTLINK_API", "a62dcaf45b03427a18bd346b466bc56efab83a9b")
+SHORTLINK_API = os.environ.get("SHORTLINK_API", "a6ab83a9b")
 TUT_VID = os.environ.get("TUT_VID","https://t.me/How_too_penlink")
 SHORT_MSG = "<b>⌯ Here is Your Download Link, Must Watch Tutorial Before Clicking On Download...</b>"
 
